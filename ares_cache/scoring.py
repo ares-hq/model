@@ -10,7 +10,7 @@ class Scoring(ABC):
     def __add__(self, other):
         if not isinstance(other, Scoring):
             return NotImplemented
-        return self.__class__(self.score + other.score, min(self.rank, other.rank))
+        return self.__class__(self.score + other.score, None)
 
 class Auto(Scoring):
     def __init__(self, score: float, rank: int):
