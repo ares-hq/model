@@ -11,7 +11,7 @@ pip install git+https://github.com/ARES-Digital-Hub/ARES-Cache.git
 ## Add as a Git Submodule
 
 ```sh
-git submodule add https://github.com/<your-username>/ARES-Cache.git external/ARES-Cache
+git submodule add https://github.com/ARES-Digital-Hub/ARES-Cache.git external/cache
 git submodule update --init --recursive
 ```
 
