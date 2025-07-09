@@ -1,13 +1,5 @@
 # Installation
 
-## Install via pip from Git
-
-```sh
-pip install git+https://github.com/ARES-Digital-Hub/ARES-Cache.git
-```
-
----
-
 ## Add as a Git Submodule
 
 ```sh
