@@ -3,8 +3,8 @@ from dataclasses import dataclass
 
 @dataclass
 class Scoring(ABC):
-    score: float
-    rank: int
+    score: float = 0.0
+    rank: int = 0
 
     def __add__(self, other):
         if not isinstance(other, Scoring):
@@ -18,6 +18,8 @@ class Scoring(ABC):
         return f"{self.__class__.__name__}(score={self.score}, rank={self.rank})"
     
     def __eq__(self, value):
+        if isinstance(value, Scoring):
+            return self.score == value.score and self.rank == value.rank
         return self.score == value
 
 class Auto(Scoring):

@@ -15,6 +15,13 @@ team = Team(
     lastChecked=datetime.now()
 )
 
+team2 = Team(
+    number=5678,
+    name="Another Team",
+    lastMatch=datetime.now(),
+    lastChecked=datetime.now()
+)
+
 def test_attributes():
     assert team.number == 1234
     assert team.name == "Test Team"
@@ -30,6 +37,43 @@ def test_attributes():
     assert team.penalties.rank == 4
     assert isinstance(team.lastMatch, datetime)
     assert isinstance(team.lastChecked, datetime)
+
+    # TEAM 2
+
+    assert team2.number == 5678
+    assert team2.name == "Another Team"
+    assert isinstance(team2.lastMatch, datetime)
+    assert isinstance(team2.lastChecked, datetime)
+
+    assert isinstance(team2.auto, Auto)
+    assert isinstance(team2.teleop, Teleop)
+    assert isinstance(team2.endgame, Endgame)
+    assert isinstance(team2.penalties, Penalties)
+
+    assert team2.auto == 0
+    assert team2.teleop == 0
+    assert team2.endgame == 0
+    assert team2.penalties == 0
+
+def test_dict():
+    d = team.__dict__
+    assert d['number'] == 1234
+    assert d['name'] == "Test Team"
+    assert d['sponsors'] == "Test Sponsor"
+    assert d['location'] == "Test Location"
+    assert d['auto'].score == 100
+    assert d['teleop'].score == 200
+    assert d['endgame'].score == 50
+    assert d['penalties'].score == 10
+    assert isinstance(d['lastMatch'], datetime)
+    assert isinstance(d['lastChecked'], datetime)
+
+
+    for attr in team.__dict__:
+        assert hasattr(team, attr), f"Team object does not have attribute {attr}"
+
+    for attr in team2.__dict__:
+        assert hasattr(team2, attr), f"Team object does not have attribute {attr}"
 
 def test_str():
     s = str(team)
