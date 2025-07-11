@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from scoring import Auto, Teleop, Endgame, Penalties
+from .scoring import Auto, Teleop, Endgame, Penalties
 from datetime import datetime
 
 @dataclass
@@ -13,8 +13,13 @@ class Team:
         sponsors (str): The sponsors of the team.
         location (str): The location of the team.
     """
-    number: int = field(default_factory=int)
-    name: str = field(default_factory=str)
+    # Metadata
+    lastMatch: datetime
+    lastChecked: datetime
+    
+    # Team profile information    
+    number: int
+    name: str
     sponsors: str = field(default_factory=str)
     location: str = field(default_factory=str)
 
@@ -23,9 +28,6 @@ class Team:
     endgame: Endgame = field(default_factory=Endgame)
     penalties: Penalties = field(default_factory=Penalties)
 
-    eventDate: datetime = field(default_factory=datetime.now)
-    lastUpdated: datetime = field(default_factory=datetime.now)
-
     def __post_init__(self):
         """Calculate overall OPR if not provided."""
         self.overall = self.auto + self.teleop + self.endgame
@@ -33,7 +35,7 @@ class Team:
     def __str__(self):
         """String representation of the team."""
         return (
-            f"Team Number: {self.number}\n"
+            f"Number: {self.number}\n"
             f"Name: {self.name}\n"
             f"Sponsors: {self.sponsors}\n"
             f"Location: {self.location}\n"
@@ -42,41 +44,41 @@ class Team:
             f"Endgame: {self.endgame.score:.2f} (Rank: {self.endgame.rank})\n"
             f"Overall: {self.overall.score:.2f} (Rank: {self.overall.rank})\n"
             f"Penalties: {self.penalties.score:.2f} (Rank: {self.penalties.rank})\n"
-            f"Event Date: {self.eventDate}\n"
-            f"Last Updated: {self.lastUpdated}"
+            f"Last Match: {self.lastMatch}\n"
+            f"Last Checked: {self.lastChecked}"
         )
 
-    def update_profile(self, name: str = None, sponsors: str = None, location: str = None, timestamp: str = None):
-        """
-        Update the team's profile information.
+    # def update_profile(self, name: str = None, sponsors: str = None, location: str = None, timestamp: str = None):
+    #     """
+    #     Update the team's profile information.
 
-        Args:
-            name (str): New team name.
-            sponsors (str): Updated sponsors.
-            location (str): Updated location.
-            timestamp (str): Timestamp of the update.
-        """
-        if name:
-            self.name = name
-        if sponsors:
-            self.sponsors = sponsors
-        if location:
-            self.location = location
-        if timestamp:
-            self.lastUpdated = timestamp
+    #     Args:
+    #         name (str): New team name.
+    #         sponsors (str): Updated sponsors.
+    #         location (str): Updated location.
+    #         timestamp (str): Timestamp of the update.
+    #     """
+    #     if name:
+    #         self.name = name
+    #     if sponsors:
+    #         self.sponsors = sponsors
+    #     if location:
+    #         self.location = location
+    #     if timestamp:
+    #         self.lastChecked = timestamp
 
-    def add_stats(self, autoOPR: float = 0, teleOPR: float = 0, endgameOPR: float = 0, penalties: float = 0):
-        """
-        Add stats to the team's performance.
+    # def add_stats(self, autoOPR: float = 0, teleOPR: float = 0, endgameOPR: float = 0, penalties: float = 0):
+    #     """
+    #     Add stats to the team's performance.
 
-        Args:
-            autoOPR (float): Additional autonomous OPR.
-            teleOPR (float): Additional teleoperated OPR.
-            endgameOPR (float): Additional endgame OPR.
-            penalties (float): Additional penalties.
-        """
-        self.auto += autoOPR
-        self.teleop += teleOPR
-        self.endgame += endgameOPR
-        self.penalties += penalties
-        self.overall = self.auto + self.teleop + self.endgame
+    #     Args:
+    #         autoOPR (float): Additional autonomous OPR.
+    #         teleOPR (float): Additional teleoperated OPR.
+    #         endgameOPR (float): Additional endgame OPR.
+    #         penalties (float): Additional penalties.
+    #     """
+    #     self.auto += autoOPR
+    #     self.teleop += teleOPR
+    #     self.endgame += endgameOPR
+    #     self.penalties += penalties
+    #     self.overall = self.auto + self.teleop + self.endgame

@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
 from .team import Team
+from .match import Match
 
 @dataclass
 class Event:
