@@ -1,17 +1,13 @@
 from dataclasses import dataclass, field
 from .scoring import Auto, Teleop, Endgame, Penalties
 from datetime import datetime
+from functools import cached_property
 
 @dataclass
 class Team:
     """
     Represents a robotics team with both performance statistics and profile information.
-
-    Attributes:
-        teamNumber (int): The team number.
-        teamName (str): The name of the team.
-        sponsors (str): The sponsors of the team.
-        location (str): The location of the team.
+    Optimized for memory efficiency and performance.
     """
     # Metadata
     lastMatch: datetime
@@ -20,17 +16,24 @@ class Team:
     # Team profile information    
     number: int
     name: str
-    sponsors: str = field(default_factory=str)
-    location: str = field(default_factory=str)
+    sponsors: str = ""
+    location: str = ""
 
     auto: Auto = field(default_factory=Auto)
     teleop: Teleop = field(default_factory=Teleop)
     endgame: Endgame = field(default_factory=Endgame)
     penalties: Penalties = field(default_factory=Penalties)
 
-    def __post_init__(self):
-        """Calculate overall OPR if not provided."""
-        self.overall = self.auto + self.teleop + self.endgame
+    @cached_property
+    def overall(self) -> Auto:
+        """Calculate overall OPR with caching."""
+        result = self.auto + self.teleop + self.endgame
+        # Calculate overall rank if individual ranks are available
+        if all(getattr(score, 'rank', 0) > 0 for score in [self.auto, self.teleop, self.endgame]):
+            # Simple ranking based on average of component ranks
+            avg_rank = (self.auto.rank + self.teleop.rank + self.endgame.rank) // 3
+            result.rank = avg_rank
+        return result
 
     def __str__(self):
         """String representation of the team."""
@@ -48,37 +51,15 @@ class Team:
             f"Last Checked: {self.lastChecked}"
         )
 
-    # def update_profile(self, name: str = None, sponsors: str = None, location: str = None, timestamp: str = None):
-    #     """
-    #     Update the team's profile information.
+    def __hash__(self):
+        """Make Team hashable for use in sets and as dict keys."""
+        return hash(self.number)
 
-    #     Args:
-    #         name (str): New team name.
-    #         sponsors (str): Updated sponsors.
-    #         location (str): Updated location.
-    #         timestamp (str): Timestamp of the update.
-    #     """
-    #     if name:
-    #         self.name = name
-    #     if sponsors:
-    #         self.sponsors = sponsors
-    #     if location:
-    #         self.location = location
-    #     if timestamp:
-    #         self.lastChecked = timestamp
+    def __eq__(self, other):
+        """Teams are equal if they have the same number."""
+        if isinstance(other, Team):
+            return self.number == other.number
+        return False
 
-    # def add_stats(self, autoOPR: float = 0, teleOPR: float = 0, endgameOPR: float = 0, penalties: float = 0):
-    #     """
-    #     Add stats to the team's performance.
-
-    #     Args:
-    #         autoOPR (float): Additional autonomous OPR.
-    #         teleOPR (float): Additional teleoperated OPR.
-    #         endgameOPR (float): Additional endgame OPR.
-    #         penalties (float): Additional penalties.
-    #     """
-    #     self.auto += autoOPR
-    #     self.teleop += teleOPR
-    #     self.endgame += endgameOPR
-    #     self.penalties += penalties
-    #     self.overall = self.auto + self.teleop + self.endgame
+    def __repr__(self):
+        return f"Team(number={self.number}, name='{self.name}')"
