@@ -3,7 +3,7 @@
 ## Add as a Git Submodule
 
 ```sh
-git submodule add https://github.com/ARES-Digital-Hub/ARES-Cache.git external/cache
+git submodule add https://github.com/ares-hq/cache.git external/cache
 git submodule update --init --recursive
 ```
 

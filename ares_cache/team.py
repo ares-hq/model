@@ -5,15 +5,10 @@ from functools import cached_property
 
 @dataclass
 class Team:
-    """
-    Represents a robotics team with both performance statistics and profile information.
-    Optimized for memory efficiency and performance.
-    """
-    # Metadata
+    """Represents a robotics team with performance statistics and profile information."""
     lastMatch: datetime
     lastChecked: datetime
     
-    # Team profile information    
     number: int
     name: str
     sponsors: str = ""
@@ -36,7 +31,6 @@ class Team:
         return result
 
     def __str__(self):
-        """String representation of the team."""
         return (
             f"Number: {self.number}\n"
             f"Name: {self.name}\n"
@@ -52,11 +46,9 @@ class Team:
         )
 
     def __hash__(self):
-        """Make Team hashable for use in sets and as dict keys."""
         return hash(self.number)
 
     def __eq__(self, other):
-        """Teams are equal if they have the same number."""
         if isinstance(other, Team):
             return self.number == other.number
         return False

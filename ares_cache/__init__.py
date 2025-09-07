@@ -1,11 +1,6 @@
 """ARES Cache
 ========
 This module provides classes for managing and interacting with ARES data.
-
-Optimized for:
-- Memory efficiency using __slots__
-- Performance with cached properties
-- Clean API with minimal methods and essential dunder methods
 """
 
 from .team import Team

@@ -14,12 +14,10 @@ class Match:
 
     @cached_property
     def matchCategories(self) -> list[str]:
-        """Categories for match display."""
         return ["Team 1", "Team 2", "Autonomous", "TeleOp", "End Game", "Penalties", "Final Score"]
 
     @property
     def winner(self) -> WinnerType:
-        """Determine the winner of the match."""
         if self._winner:  # If manually set
             return self._winner
         elif self.redAlliance.is_empty and self.blueAlliance.is_empty:
@@ -37,17 +35,14 @@ class Match:
 
     @winner.setter
     def winner(self, value: WinnerType):
-        """Set the winner manually."""
         object.__setattr__(self, '_winner', value)
 
     @property
     def redAllianceEmpty(self) -> bool:
-        """Check if red alliance has no meaningful data."""
         return self.redAlliance.is_empty
 
     @property
     def blueAllianceEmpty(self) -> bool:
-        """Check if blue alliance has no meaningful data."""
         return self.blueAlliance.is_empty
 
     def __str__(self):
@@ -70,7 +65,6 @@ class Match:
         return "".join(table_parts)
 
     def __hash__(self):
-        """Make Match hashable based on alliance composition."""
         return hash((
             tuple(self.redAlliance.numbers),
             tuple(self.blueAlliance.numbers),
@@ -79,7 +73,6 @@ class Match:
         ))
 
     def __eq__(self, other):
-        """Matches are equal if they have the same alliances."""
         if isinstance(other, Match):
             return (self.redAlliance == other.redAlliance and 
                    self.blueAlliance == other.blueAlliance)
