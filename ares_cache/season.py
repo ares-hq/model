@@ -31,12 +31,11 @@ class History:
     """History management for seasons."""
     Seasons: Dict[str, Season] = field(default_factory=dict)
 
-    @property
-    def numSeasons(self) -> int:
+    def __len__(self) -> int:
         return len(self.Seasons)
 
     def __str__(self):
-        return f"History: {self.numSeasons} seasons"
+        return f"History: {len(self.Seasons)} seasons"
 
     def __hash__(self):
         return hash(tuple(sorted(self.Seasons.keys())))
