@@ -4,3 +4,7 @@ build/
 
 **/__pycache__/
 .vscode/
+
+# Added by cargo
+
+/target
