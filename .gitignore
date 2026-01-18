@@ -1,8 +1,6 @@
 *venv/
-*egg-info/
 build/
 
-**/__pycache__/
 .vscode/
 
 # Added by cargo
