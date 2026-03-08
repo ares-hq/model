@@ -1,8 +1,8 @@
 use std::ops::{Add, Sub};
 
 #[derive(Debug, Clone, PartialEq, Default)]
-struct Scoring {
-    score: f64,
+pub struct Scoring {
+    score: u16,
     rank: u32,
 }
 
@@ -30,7 +30,7 @@ impl Sub for Scoring {
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Auto {
-    pub score: f64,
+    pub score: u16,
     pub rank: u32,
 }
 
@@ -58,7 +58,7 @@ impl Sub for Auto {
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Teleop {
-    pub score: f64,
+    pub score: u16,
     pub rank: u32,
 }
 
@@ -86,7 +86,7 @@ impl Sub for Teleop {
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Endgame {
-    pub score: f64,
+    pub score: u16,
     pub rank: u32,
 }
 
@@ -114,7 +114,7 @@ impl Sub for Endgame {
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Penalties {
-    pub score: f64,
+    pub score: u16,
     pub rank: u32,
 }
 
