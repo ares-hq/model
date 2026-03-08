@@ -26,14 +26,33 @@ impl Team {
         }
     }
 
-    pub fn with_scores(number: u32, name: String, auto: u16, teleop: u16, endgame: u16, penalties: u16) -> Self {
+    pub fn with_scores(
+        number: u32,
+        name: String,
+        auto: u16,
+        teleop: u16,
+        endgame: u16,
+        penalties: u16,
+    ) -> Self {
         Self {
             number,
             name,
-            auto: Auto { score: auto, rank: 0 },
-            teleop: Teleop { score: teleop, rank: 0 },
-            endgame: Endgame { score: endgame, rank: 0 },
-            penalties: Penalties { score: penalties, rank: 0 },
+            auto: Auto {
+                score: auto,
+                rank: 0,
+            },
+            teleop: Teleop {
+                score: teleop,
+                rank: 0,
+            },
+            endgame: Endgame {
+                score: endgame,
+                rank: 0,
+            },
+            penalties: Penalties {
+                score: penalties,
+                rank: 0,
+            },
             ..Default::default()
         }
     }

@@ -12,7 +12,7 @@ impl Add for Scoring {
     fn add(self, other: Scoring) -> Self {
         Self {
             score: self.score + other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -23,7 +23,7 @@ impl Sub for Scoring {
     fn sub(self, other: Scoring) -> Self {
         Self {
             score: self.score - other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -40,7 +40,7 @@ impl Add for Auto {
     fn add(self, other: Auto) -> Self {
         Self {
             score: self.score + other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -51,7 +51,7 @@ impl Sub for Auto {
     fn sub(self, other: Auto) -> Self {
         Self {
             score: self.score - other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -68,7 +68,7 @@ impl Add for Teleop {
     fn add(self, other: Teleop) -> Self {
         Self {
             score: self.score + other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -79,7 +79,7 @@ impl Sub for Teleop {
     fn sub(self, other: Teleop) -> Self {
         Self {
             score: self.score - other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -96,7 +96,7 @@ impl Add for Endgame {
     fn add(self, other: Endgame) -> Self {
         Self {
             score: self.score + other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -107,7 +107,7 @@ impl Sub for Endgame {
     fn sub(self, other: Endgame) -> Self {
         Self {
             score: self.score - other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -124,7 +124,7 @@ impl Add for Penalties {
     fn add(self, other: Penalties) -> Self {
         Self {
             score: self.score + other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }
@@ -135,7 +135,7 @@ impl Sub for Penalties {
     fn sub(self, other: Penalties) -> Self {
         Self {
             score: self.score - other.score,
-            rank: 0
+            rank: 0,
         }
     }
 }

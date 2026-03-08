@@ -1,6 +1,6 @@
-use std::time::SystemTime;
-use cache::scoring::{Auto, Teleop, Endgame, Penalties};
+use cache::scoring::{Auto, Endgame, Penalties, Teleop};
 use cache::team::Team;
+use std::time::SystemTime;
 
 #[test]
 fn test_attributes() {
@@ -9,8 +9,14 @@ fn test_attributes() {
         name: "Test Team".to_string(),
         sponsors: "Test Sponsor".to_string(),
         location: "Test Location".to_string(),
-        auto: Auto { score: 100, rank: 1 },
-        teleop: Teleop { score: 200, rank: 2 },
+        auto: Auto {
+            score: 100,
+            rank: 1,
+        },
+        teleop: Teleop {
+            score: 200,
+            rank: 2,
+        },
         endgame: Endgame { score: 50, rank: 3 },
         penalties: Penalties { score: 10, rank: 4 },
         last_match: Some(SystemTime::now()),

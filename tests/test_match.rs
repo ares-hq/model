@@ -1,5 +1,5 @@
-use cache::r#match::Match;
 use cache::alliance::Alliance;
+use cache::r#match::Match;
 
 #[test]
 fn test_match_default() {
@@ -33,7 +33,7 @@ fn test_match_is_tie_equal_scores() {
 fn test_match_clone() {
     let match1 = Match::default();
     let match2 = match1.clone();
-    
+
     assert_eq!(match1, match2);
 }
 
@@ -48,7 +48,7 @@ fn test_match_debug_format() {
 fn test_match_partial_eq() {
     let match1 = Match::default();
     let match2 = Match::default();
-    
+
     assert_eq!(match1, match2);
 }
 
@@ -56,7 +56,7 @@ fn test_match_partial_eq() {
 fn test_match_winner_returns_option() {
     let match_game = Match::default();
     let winner = match_game.winner();
-    
+
     // winner should be Option<&str>
     assert!(winner.is_none() || winner == Some("Red") || winner == Some("Blue"));
 }

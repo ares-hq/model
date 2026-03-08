@@ -1,4 +1,4 @@
-use cache::scoring::{Auto, Teleop, Endgame, Penalties};
+use cache::scoring::{Auto, Endgame, Penalties, Teleop};
 
 #[test]
 fn test_auto_default() {
@@ -9,7 +9,10 @@ fn test_auto_default() {
 
 #[test]
 fn test_auto_add() {
-    let auto1 = Auto { score: 100, rank: 1 };
+    let auto1 = Auto {
+        score: 100,
+        rank: 1,
+    };
     let auto2 = Auto { score: 50, rank: 2 };
     let result = auto1 + auto2;
     assert_eq!(result.score, 150);
@@ -18,7 +21,10 @@ fn test_auto_add() {
 
 #[test]
 fn test_auto_sub() {
-    let auto1 = Auto { score: 100, rank: 1 };
+    let auto1 = Auto {
+        score: 100,
+        rank: 1,
+    };
     let auto2 = Auto { score: 30, rank: 2 };
     let result = auto1 - auto2;
     assert_eq!(result.score, 70);
@@ -34,8 +40,14 @@ fn test_teleop_default() {
 
 #[test]
 fn test_teleop_add() {
-    let teleop1 = Teleop { score: 200, rank: 1 };
-    let teleop2 = Teleop { score: 100, rank: 2 };
+    let teleop1 = Teleop {
+        score: 200,
+        rank: 1,
+    };
+    let teleop2 = Teleop {
+        score: 100,
+        rank: 2,
+    };
     let result = teleop1 + teleop2;
     assert_eq!(result.score, 300);
     assert_eq!(result.rank, 0);
@@ -43,7 +55,10 @@ fn test_teleop_add() {
 
 #[test]
 fn test_teleop_sub() {
-    let teleop1 = Teleop { score: 200, rank: 1 };
+    let teleop1 = Teleop {
+        score: 200,
+        rank: 1,
+    };
     let teleop2 = Teleop { score: 75, rank: 2 };
     let result = teleop1 - teleop2;
     assert_eq!(result.score, 125);
@@ -102,10 +117,13 @@ fn test_penalties_sub() {
 
 #[test]
 fn test_scoring_chain_operations() {
-    let auto1 = Auto { score: 100, rank: 1 };
+    let auto1 = Auto {
+        score: 100,
+        rank: 1,
+    };
     let auto2 = Auto { score: 50, rank: 2 };
     let auto3 = Auto { score: 25, rank: 3 };
-    
+
     let result = auto1 + auto2 + auto3;
     assert_eq!(result.score, 175);
 }
@@ -121,10 +139,16 @@ fn test_zero_scores() {
 #[test]
 fn test_max_realistic_scores() {
     // Test with realistic maximum FTC scores
-    let auto = Auto { score: 150, rank: 1 };
-    let teleop = Teleop { score: 200, rank: 1 };
+    let auto = Auto {
+        score: 150,
+        rank: 1,
+    };
+    let teleop = Teleop {
+        score: 200,
+        rank: 1,
+    };
     let endgame = Endgame { score: 60, rank: 1 };
-    
+
     assert_eq!(auto.score, 150);
     assert_eq!(teleop.score, 200);
     assert_eq!(endgame.score, 60);

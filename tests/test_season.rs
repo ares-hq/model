@@ -1,4 +1,4 @@
-use cache::season::{Season, Database};
+use cache::season::{Database, Season};
 
 #[test]
 fn test_season_default() {

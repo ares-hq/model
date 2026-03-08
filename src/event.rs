@@ -1,16 +1,15 @@
-use crate::team::Team;
 use crate::r#match::Match;
+use crate::team::Team;
 use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Event {
     pub code: String,
-    pub teams : Vec<Team>,
+    pub teams: Vec<Team>,
     pub matches: HashMap<String, Match>,
 }
 
 impl Event {
-
     pub fn add_team(&mut self, team: Team) {
         self.teams.push(team);
     }

@@ -1,9 +1,9 @@
-use std::collections::HashMap;
 use crate::event::Event;
 use crate::team::Team;
+use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Default)]
-pub struct Season{
+pub struct Season {
     pub code: String,
     pub num_teams: u32,
     pub num_awards: u32,
