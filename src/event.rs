@@ -1,44 +1,40 @@
+use crate::alliance::Alliance;
 use crate::r#match::Match;
-use crate::team::Team;
-use std::collections::HashMap;
 
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Event {
     pub code: String,
-    pub teams: Vec<Team>,
-    pub matches: HashMap<String, Match>,
+    pub matches: Vec<Match>,
 }
 
 impl Event {
-    pub fn add_team(&mut self, team: Team) {
-        self.teams.push(team);
+    pub fn new(code: impl Into<String>) -> Self {
+        Self {
+            code: code.into(),
+            matches: Vec::new(),
+        }
     }
 
-    pub fn add_match(&mut self, match_id: String, match_data: Match) {
-        self.matches.insert(match_id, match_data);
+    pub fn add_match(&mut self, m: Match) {
+        self.matches.push(m);
     }
 
-    pub fn get_team(&self, number: u32) -> Option<&Team> {
-        self.teams.iter().find(|t| t.number == number)
-    }
-
-    pub fn get_team_mut(&mut self, number: u32) -> Option<&mut Team> {
-        self.teams.iter_mut().find(|t| t.number == number)
-    }
-
-    pub fn team_count(&self) -> usize {
-        self.teams.len()
+    /// First-appearance order, so OPR columns are reproducible.
+    pub fn teams(&self) -> Vec<u32> {
+        let mut seen = std::collections::HashSet::new();
+        self.matches
+            .iter()
+            .flat_map(Match::alliances)
+            .flat_map(Alliance::present)
+            .filter(|&n| seen.insert(n))
+            .collect()
     }
 
     pub fn match_count(&self) -> usize {
         self.matches.len()
     }
 
-    pub fn get_match(&self, match_id: &str) -> Option<&Match> {
-        self.matches.get(match_id)
-    }
-
     pub fn is_empty(&self) -> bool {
-        self.teams.is_empty() && self.matches.is_empty()
+        self.matches.is_empty()
     }
 }

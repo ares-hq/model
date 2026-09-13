@@ -1,132 +1,89 @@
-use cache::event::Event;
-use cache::r#match::Match;
-use cache::team::Team;
-use std::collections::HashMap;
+use model::prelude::{Alliance, Event, Match};
+
+fn qual(red: [u32; 2], blue: [u32; 2]) -> Match {
+    Match::new(Alliance::new(red), Alliance::new(blue))
+}
 
 #[test]
-fn test_event_default() {
+fn default_event_is_empty() {
     let event = Event::default();
     assert_eq!(event.code, "");
-    assert_eq!(event.teams.len(), 0);
-    assert_eq!(event.matches.len(), 0);
+    assert!(event.is_empty());
+    assert_eq!(event.match_count(), 0);
+    assert!(event.teams().is_empty());
 }
 
 #[test]
-fn test_event_with_code() {
-    let event = Event {
-        code: "TXHOU".to_string(),
-        teams: Vec::new(),
-        matches: HashMap::new(),
-    };
-    assert_eq!(event.code, "TXHOU");
+fn new_sets_the_code() {
+    assert_eq!(Event::new("TXHOU").code, "TXHOU");
 }
 
 #[test]
-fn test_event_with_teams() {
-    let team1 = Team::default();
-    let team2 = Team::default();
+fn matches_keep_the_order_they_were_added() {
+    let mut event = Event::new("TXHOU");
+    event.add_match(qual([1, 2], [3, 4]));
+    event.add_match(qual([5, 6], [7, 8]));
 
-    let event = Event {
-        code: "TXHOU".to_string(),
-        teams: vec![team1, team2],
-        matches: HashMap::new(),
-    };
-
-    assert_eq!(event.teams.len(), 2);
+    assert_eq!(event.match_count(), 2);
+    assert_eq!(event.matches[0].red.teams, [1, 2]);
+    assert_eq!(event.matches[1].red.teams, [5, 6]);
 }
 
 #[test]
-fn test_event_with_matches() {
-    let mut matches = HashMap::new();
-    matches.insert("Q1".to_string(), Match::default());
-    matches.insert("Q2".to_string(), Match::default());
+fn teams_are_listed_in_order_of_first_appearance() {
+    let mut event = Event::new("TXHOU");
+    event.add_match(qual([1, 2], [3, 4]));
+    event.add_match(qual([5, 6], [7, 8]));
 
-    let event = Event {
-        code: "TXHOU".to_string(),
-        teams: Vec::new(),
-        matches,
-    };
-
-    assert_eq!(event.matches.len(), 2);
-    assert!(event.matches.contains_key("Q1"));
-    assert!(event.matches.contains_key("Q2"));
+    assert_eq!(event.teams(), vec![1, 2, 3, 4, 5, 6, 7, 8]);
 }
 
 #[test]
-fn test_event_clone() {
-    let event1 = Event {
-        code: "TXHOU".to_string(),
-        teams: Vec::new(),
-        matches: HashMap::new(),
-    };
-    let event2 = event1.clone();
+fn teams_are_deduplicated_across_matches() {
+    let mut event = Event::new("TXHOU");
+    event.add_match(qual([1, 2], [3, 4]));
+    // Same eight teams, reshuffled into new alliances.
+    event.add_match(qual([1, 3], [2, 4]));
 
-    assert_eq!(event1, event2);
+    assert_eq!(event.teams(), vec![1, 2, 3, 4]);
 }
 
 #[test]
-fn test_event_debug_format() {
-    let event = Event::default();
-    let debug_str = format!("{:?}", event);
-    assert!(debug_str.contains("Event"));
+fn team_order_is_stable_so_opr_columns_are_reproducible() {
+    let mut event = Event::new("TXHOU");
+    for _ in 0..2 {
+        event.add_match(qual([9, 7], [4, 1]));
+    }
+    // First appearance order, not sorted order.
+    assert_eq!(event.teams(), vec![9, 7, 4, 1]);
 }
 
 #[test]
-fn test_event_partial_eq() {
-    let event1 = Event {
-        code: "TXHOU".to_string(),
-        teams: Vec::new(),
-        matches: HashMap::new(),
-    };
-    let event2 = Event {
-        code: "TXHOU".to_string(),
-        teams: Vec::new(),
-        matches: HashMap::new(),
-    };
-
-    assert_eq!(event1, event2);
-}
-
-#[test]
-fn test_event_add_match() {
-    let mut event = Event::default();
-    event.matches.insert("Q1".to_string(), Match::default());
-
-    assert_eq!(event.matches.len(), 1);
-    assert!(event.matches.contains_key("Q1"));
-}
-
-#[test]
-fn test_event_add_team() {
-    let mut event = Event::default();
-    event.teams.push(Team::default());
-
-    assert_eq!(event.teams.len(), 1);
-}
-
-#[test]
-fn test_event_realistic_scenario() {
-    let mut event = Event {
-        code: "TXHOU".to_string(),
-        teams: Vec::new(),
-        matches: HashMap::new(),
-    };
-
-    // Add some teams
-    for i in 1..=10 {
-        let team = Team {
-            number: 1000 + i,
-            name: format!("Team {}", i),
-            ..Default::default()
-        };
-        event.teams.push(team);
+fn realistic_event_shape() {
+    let mut event = Event::new("TXHOU");
+    for i in 0..30 {
+        let base = (i % 5) * 4 + 1000;
+        event.add_match(qual([base, base + 1], [base + 2, base + 3]));
     }
 
-    // Add some matches
-    for i in 1..=6 {
-        event.matches.insert(format!("Q{}", i), Match::default());
-    }
+    assert_eq!(event.match_count(), 30);
+    assert_eq!(event.teams().len(), 20);
+}
 
-    assert_eq!(event.teams.len(), 10);
-    assert_eq!(event.matches.len(), 6);
+#[test]
+fn event_clones_and_compares() {
+    let mut event = Event::new("TXHOU");
+    event.add_match(qual([1, 2], [3, 4]));
+
+    assert_eq!(event, event.clone());
+    assert!(format!("{event:?}").contains("Event"));
+}
+
+#[test]
+fn empty_team_slots_are_not_counted_as_a_team() {
+    let mut event = Event::new("TXHOU");
+    // Blue ran a match a team short.
+    event.add_match(qual([1, 2], [3, 0]));
+
+    assert_eq!(event.teams(), vec![1, 2, 3]);
 }

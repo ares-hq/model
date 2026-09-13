@@ -1,169 +1,100 @@
-use cache::alliance::Alliance;
-use cache::scoring::{Auto, Endgame, Penalties, Teleop};
-use cache::team::Team;
+use model::prelude::Alliance;
 
-fn create_test_team(
-    number: u32,
-    name: &str,
-    auto: u16,
-    teleop: u16,
-    endgame: u16,
-    penalties: u16,
-) -> Team {
-    Team {
-        number,
-        name: name.to_string(),
-        sponsors: String::new(),
-        location: String::new(),
-        auto: Auto {
-            score: auto,
-            rank: 0,
-        },
-        teleop: Teleop {
-            score: teleop,
-            rank: 0,
-        },
-        endgame: Endgame {
-            score: endgame,
-            rank: 0,
-        },
-        penalties: Penalties {
-            score: penalties,
-            rank: 0,
-        },
-        last_match: None,
-        last_checked: None,
+/// A realistic qualification alliance: scores measured for the pair, not per team.
+fn scored() -> Alliance {
+    Alliance {
+        teams: [1234, 5678],
+        auto: 180.0,
+        teleop: 270.0,
+        endgame: 70.0,
+        penalties: 15.0,
     }
 }
 
 #[test]
-fn test_alliance_default() {
+fn default_alliance_scores_nothing() {
     let alliance = Alliance::default();
-    assert_eq!(alliance.auto(), 0);
-    assert_eq!(alliance.teleop(), 0);
-    assert_eq!(alliance.endgame(), 0);
-    assert_eq!(alliance.penalties(), 0);
-    assert_eq!(alliance.overall(), 0);
-}
-
-#[test]
-fn test_alliance_auto_sum() {
-    let team1 = create_test_team(1234, "Team A", 50, 0, 0, 0);
-    let team2 = create_test_team(5678, "Team B", 75, 0, 0, 0);
-
-    let alliance = Alliance::new(team1, team2, "Red".to_string());
-    assert_eq!(alliance.auto(), 125); // 50 + 75
-    assert_eq!(alliance.teleop(), 0);
-    assert_eq!(alliance.endgame(), 0);
-}
-
-#[test]
-fn test_alliance_with_real_scores() {
-    let team1 = create_test_team(1234, "Team A", 100, 150, 40, 10);
-    let team2 = create_test_team(5678, "Team B", 80, 120, 30, 5);
-
-    let alliance = Alliance::new(team1, team2, "Blue".to_string());
-
-    assert_eq!(alliance.auto(), 180); // 100 + 80
-    assert_eq!(alliance.teleop(), 270); // 150 + 120
-    assert_eq!(alliance.endgame(), 70); // 40 + 30
-    assert_eq!(alliance.penalties(), 15); // 10 + 5
-    assert_eq!(alliance.overall(), 505); // 180 + 270 + 70 - 15
-}
-
-#[test]
-fn test_alliance_is_empty_when_zero_score() {
-    let alliance = Alliance::default();
+    assert_eq!(alliance.teams, [0, 0]);
+    assert_eq!(alliance.overall(), 0.0);
     assert!(alliance.is_empty());
 }
 
 #[test]
-fn test_alliance_not_empty_with_scores() {
-    let team1 = create_test_team(1234, "Team A", 50, 0, 0, 0);
-    let team2 = create_test_team(5678, "Team B", 0, 0, 0, 0);
-    let alliance = Alliance::new(team1, team2, "Red".to_string());
+fn new_records_teams_without_scores() {
+    let alliance = Alliance::new([1234, 5678]);
+    assert_eq!(alliance.teams, [1234, 5678]);
+    assert_eq!(alliance.overall(), 0.0);
+}
 
+#[test]
+fn overall_deducts_penalties_from_every_phase() {
+    // 180 + 270 + 70 - 15
+    assert_eq!(scored().overall(), 505.0);
+}
+
+#[test]
+fn scores_are_the_alliances_own_not_a_sum_of_teams() {
+    // The whole point of the pre-solve view: these came off the field as a
+    // pair, and no per-team split exists yet.
+    let alliance = scored();
+    assert_eq!(alliance.auto, 180.0);
+    assert_eq!(alliance.teleop, 270.0);
+    assert_eq!(alliance.endgame, 70.0);
+    assert_eq!(alliance.penalties, 15.0);
+}
+
+#[test]
+fn scoring_in_any_phase_makes_it_non_empty() {
+    let alliance = Alliance {
+        teams: [1, 2],
+        auto: 50.0,
+        ..Default::default()
+    };
     assert!(!alliance.is_empty());
 }
 
 #[test]
-fn test_alliance_names() {
-    let team1 = create_test_team(1234, "Team A", 0, 0, 0, 0);
-    let team2 = create_test_team(5678, "Team B", 0, 0, 0, 0);
-    let alliance = Alliance::new(team1, team2, "Red".to_string());
-
-    let names = alliance.names();
-    assert_eq!(names.len(), 2);
-    assert_eq!(names[0], "Team A");
-    assert_eq!(names[1], "Team B");
+fn penalties_alone_leave_a_negative_score() {
+    let alliance = Alliance {
+        teams: [1, 2],
+        penalties: 20.0,
+        ..Default::default()
+    };
+    assert_eq!(alliance.overall(), -20.0);
+    assert!(!alliance.is_empty());
 }
 
 #[test]
-fn test_alliance_numbers() {
-    let team1 = create_test_team(1234, "Team A", 0, 0, 0, 0);
-    let team2 = create_test_team(5678, "Team B", 0, 0, 0, 0);
-    let alliance = Alliance::new(team1, team2, "Blue".to_string());
-
-    let numbers = alliance.numbers();
-    assert_eq!(numbers.len(), 2);
-    assert_eq!(numbers[0], 1234);
-    assert_eq!(numbers[1], 5678);
+fn has_team_matches_either_slot() {
+    let alliance = scored();
+    assert!(alliance.has_team(1234));
+    assert!(alliance.has_team(5678));
+    assert!(!alliance.has_team(9999));
 }
 
 #[test]
-fn test_alliance_scoreboard_with_data() {
-    let team1 = create_test_team(1234, "Team A", 100, 150, 40, 10);
-    let team2 = create_test_team(5678, "Team B", 80, 120, 30, 5);
-    let alliance = Alliance::new(team1, team2, "Red".to_string());
-
-    let scoreboard = alliance.scoreboard();
-
-    assert_eq!(scoreboard.get("Team 1"), Some(&1234));
-    assert_eq!(scoreboard.get("Team 2"), Some(&5678));
-    assert_eq!(scoreboard.get("Auto"), Some(&180));
-    assert_eq!(scoreboard.get("Teleop"), Some(&270));
-    assert_eq!(scoreboard.get("Endgame"), Some(&70));
-    assert_eq!(scoreboard.get("Penalties"), Some(&15));
-    assert_eq!(scoreboard.get("Overall"), Some(&505));
+fn alliance_clones_and_compares() {
+    let alliance = scored();
+    assert_eq!(alliance, alliance.clone());
+    assert!(format!("{alliance:?}").contains("Alliance"));
 }
 
 #[test]
-fn test_alliance_scoreboard_structure() {
-    let alliance = Alliance::default();
-    let scoreboard = alliance.scoreboard();
+fn zero_marks_an_empty_slot() {
+    // A team the field reported as absent leaves its slot unfilled.
+    let alliance = Alliance {
+        teams: [1234, 0],
+        auto: 10.0,
+        teleop: 20.0,
+        ..Default::default()
+    };
 
-    assert!(scoreboard.contains_key("Team 1"));
-    assert!(scoreboard.contains_key("Team 2"));
-    assert!(scoreboard.contains_key("Auto"));
-    assert!(scoreboard.contains_key("Teleop"));
-    assert!(scoreboard.contains_key("Endgame"));
-    assert!(scoreboard.contains_key("Penalties"));
-    assert!(scoreboard.contains_key("Overall"));
+    assert!(alliance.has_team(1234));
+    assert!(!alliance.has_team(0));
+    assert_eq!(alliance.present().collect::<Vec<_>>(), vec![1234]);
 }
 
 #[test]
-fn test_alliance_scoreboard_default_values() {
-    let alliance = Alliance::default();
-    let scoreboard = alliance.scoreboard();
-
-    assert_eq!(scoreboard.get("Auto"), Some(&0));
-    assert_eq!(scoreboard.get("Teleop"), Some(&0));
-    assert_eq!(scoreboard.get("Endgame"), Some(&0));
-    assert_eq!(scoreboard.get("Penalties"), Some(&0));
-    assert_eq!(scoreboard.get("Overall"), Some(&0));
-}
-
-#[test]
-fn test_alliance_clone() {
-    let alliance1 = Alliance::default();
-    let alliance2 = alliance1.clone();
-
-    assert_eq!(alliance1, alliance2);
-}
-
-#[test]
-fn test_alliance_debug_format() {
-    let alliance = Alliance::default();
-    let debug_str = format!("{:?}", alliance);
-    assert!(debug_str.contains("Alliance"));
+fn present_yields_both_teams_when_the_alliance_is_full() {
+    assert_eq!(scored().present().collect::<Vec<_>>(), vec![1234, 5678]);
 }

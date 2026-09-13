@@ -1,19 +1,51 @@
-use crate::scoring::{Auto, Endgame, Penalties, Teleop};
+use serde::{Deserialize, Serialize};
 use std::time::SystemTime;
 
-#[derive(Debug, Clone, PartialEq, Default)]
+/// Season record; fields are the `season_<year>` columns.
+#[derive(Debug, Clone, PartialEq, Default, Serialize, Deserialize)]
+#[serde(default)]
 pub struct Team {
+    #[serde(rename = "teamNumber")]
     pub number: u32,
+    #[serde(rename = "teamName")]
     pub name: String,
     pub sponsors: String,
     pub location: String,
+    /// Rookie year.
+    pub founded: Option<u16>,
+    pub website: Option<String>,
 
-    pub auto: Auto,
-    pub teleop: Teleop,
-    pub endgame: Endgame,
-    pub penalties: Penalties,
+    #[serde(rename = "autoOPR")]
+    pub auto: f64,
+    #[serde(rename = "teleOPR")]
+    pub teleop: f64,
+    #[serde(rename = "endgameOPR")]
+    pub endgame: f64,
+    pub penalties: f64,
+    /// `auto` + `teleop`.
+    #[serde(rename = "overallOPR")]
+    pub overall: f64,
 
+    #[serde(rename = "autoRank")]
+    pub auto_rank: Option<u32>,
+    #[serde(rename = "teleRank")]
+    pub tele_rank: Option<u32>,
+    #[serde(rename = "endgameRank")]
+    pub endgame_rank: Option<u32>,
+    #[serde(rename = "penaltyRank")]
+    pub penalty_rank: Option<u32>,
+    #[serde(rename = "overallRank")]
+    pub overall_rank: Option<u32>,
+
+    /// Sorted, deduplicated.
+    #[serde(rename = "eventsAttended")]
+    pub events_attended: Vec<String>,
+    #[serde(rename = "profileUpdate")]
+    pub profile_update: Option<String>,
+
+    #[serde(skip)]
     pub last_match: Option<SystemTime>,
+    #[serde(skip)]
     pub last_checked: Option<SystemTime>,
 }
 
@@ -29,36 +61,37 @@ impl Team {
     pub fn with_scores(
         number: u32,
         name: String,
-        auto: u16,
-        teleop: u16,
-        endgame: u16,
-        penalties: u16,
+        auto: f64,
+        teleop: f64,
+        endgame: f64,
+        penalties: f64,
     ) -> Self {
-        Self {
+        let mut team = Self {
             number,
             name,
-            auto: Auto {
-                score: auto,
-                rank: 0,
-            },
-            teleop: Teleop {
-                score: teleop,
-                rank: 0,
-            },
-            endgame: Endgame {
-                score: endgame,
-                rank: 0,
-            },
-            penalties: Penalties {
-                score: penalties,
-                rank: 0,
-            },
+            auto,
+            teleop,
+            endgame,
+            penalties,
             ..Default::default()
-        }
+        };
+        team.recompute_overall();
+        team
     }
 
-    pub fn total_score(&self) -> u16 {
-        self.auto.score + self.teleop.score + self.endgame.score - self.penalties.score
+    pub fn recompute_overall(&mut self) {
+        self.overall = self.auto + self.teleop;
+    }
+
+    /// All phases minus penalties, unlike [`Team::overall`].
+    pub fn total_score(&self) -> f64 {
+        self.auto + self.teleop + self.endgame - self.penalties
+    }
+
+    pub fn add_events(&mut self, events: impl IntoIterator<Item = String>) {
+        self.events_attended.extend(events);
+        self.events_attended.sort();
+        self.events_attended.dedup();
     }
 
     pub fn update_last_match(&mut self) {
