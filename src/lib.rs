@@ -2,6 +2,7 @@ pub mod alliance;
 pub mod event;
 pub mod r#match;
 pub mod prelude;
+pub mod season;
 #[cfg(feature = "supabase")]
 pub mod supabase;
 pub mod team;
