@@ -5,4 +5,5 @@ pub mod prelude;
 pub mod season;
 #[cfg(feature = "supabase")]
 pub mod supabase;
+pub mod tables;
 pub mod team;

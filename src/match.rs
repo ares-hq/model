@@ -1,9 +1,20 @@
 use crate::alliance::Alliance;
 
+const TIE_EPSILON: f64 = 0.01;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Winner {
     Red,
     Blue,
+}
+
+impl Winner {
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::Red => "Red",
+            Self::Blue => "Blue",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Default)]
@@ -17,32 +28,24 @@ impl Match {
         Self { red, blue }
     }
 
+    /// `(red, blue)`, each carrying the fouls its opponent committed.
+    pub fn totals(&self) -> (f64, f64) {
+        (
+            self.red.points() + self.blue.penalties,
+            self.blue.points() + self.red.penalties,
+        )
+    }
+
     /// `None` on a tie.
     pub fn winner(&self) -> Option<Winner> {
-        let (red, blue) = (self.red.overall(), self.blue.overall());
-        if red > blue {
-            Some(Winner::Red)
-        } else if blue > red {
-            Some(Winner::Blue)
-        } else {
+        let (red, blue) = self.totals();
+        if (red - blue).abs() < TIE_EPSILON {
             None
+        } else if red > blue {
+            Some(Winner::Red)
+        } else {
+            Some(Winner::Blue)
         }
-    }
-
-    pub fn is_tie(&self) -> bool {
-        self.winner().is_none()
-    }
-
-    pub fn score_difference(&self) -> f64 {
-        (self.red.overall() - self.blue.overall()).abs()
-    }
-
-    pub fn total_score(&self) -> f64 {
-        self.red.overall() + self.blue.overall()
-    }
-
-    pub fn is_complete(&self) -> bool {
-        !self.red.is_empty() || !self.blue.is_empty()
     }
 
     /// Red, then blue.

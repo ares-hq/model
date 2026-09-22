@@ -1,39 +1,51 @@
 use model::prelude::Team;
 use serde_json::json;
 
+/// Stand-in for the pipeline's own build-up: set the phases, then derive `overall`.
+fn scored(number: u32, name: &str, auto: f64, teleop: f64, endgame: f64, penalties: f64) -> Team {
+    let mut team = Team {
+        auto,
+        teleop,
+        endgame,
+        penalties,
+        ..Team::new(number, name.into())
+    };
+    team.recompute_overall();
+    team
+}
+
 #[test]
 fn new_leaves_everything_else_default() {
     let team = Team::new(1234, "Alpha".into());
     assert_eq!(team.number, 1234);
     assert_eq!(team.auto, 0.0);
     assert_eq!(team.auto_rank, None);
-    assert!(team.is_valid());
-    assert!(!team.has_played());
+    assert_eq!(team.overall, 0.0);
+    assert!(team.events_attended.is_empty());
 }
 
 #[test]
-fn with_scores_sets_overall_to_auto_plus_teleop() {
-    let team = Team::with_scores(1, "A".into(), 10.0, 20.0, 5.0, 3.0);
-    assert_eq!(team.overall, 30.0);
-    assert_eq!(team.total_score(), 32.0);
+fn overall_is_auto_plus_teleop_only() {
+    let team = scored(1, "A", 10.0, 20.0, 5.0, 3.0);
+    assert_eq!(team.overall, 30.0, "endgame and penalties rank separately");
 }
 
 #[test]
 fn scores_hold_negative_and_fractional_opr() {
-    let team = Team::with_scores(1, "A".into(), -1.8366, 45.3513, 3.25, 62.6598);
+    let team = scored(1, "A", -1.8366, 45.3513, 3.25, 62.6598);
     assert_eq!(team.auto, -1.8366);
     assert!((team.overall - 43.5147).abs() < 1e-9);
 }
 
 #[test]
-fn total_score_goes_negative_instead_of_underflowing() {
-    let team = Team::with_scores(1, "A".into(), 1.0, 1.0, 1.0, 500.0);
-    assert_eq!(team.total_score(), -497.0);
+fn overall_goes_negative_instead_of_underflowing() {
+    let team = scored(1, "A", -10.0, 1.0, 1.0, 500.0);
+    assert_eq!(team.overall, -9.0);
 }
 
 #[test]
 fn recompute_overall_tracks_edits() {
-    let mut team = Team::with_scores(1, "A".into(), 10.0, 20.0, 0.0, 0.0);
+    let mut team = scored(1, "A", 10.0, 20.0, 0.0, 0.0);
     team.auto = 99.0;
     team.recompute_overall();
     assert_eq!(team.overall, 119.0);
@@ -41,7 +53,7 @@ fn recompute_overall_tracks_edits() {
 
 #[test]
 fn recompute_overall_leaves_ranks_alone() {
-    let mut team = Team::with_scores(1, "A".into(), 10.0, 20.0, 0.0, 0.0);
+    let mut team = scored(1, "A", 10.0, 20.0, 0.0, 0.0);
     team.overall_rank = Some(7);
     team.recompute_overall();
     assert_eq!(team.overall_rank, Some(7));
@@ -56,14 +68,8 @@ fn add_events_sorts_and_deduplicates() {
 }
 
 #[test]
-fn a_team_needs_a_number_and_a_name() {
-    assert!(!Team::new(0, "A".into()).is_valid());
-    assert!(!Team::new(1, String::new()).is_valid());
-}
-
-#[test]
 fn serializes_to_the_season_table_columns() {
-    let mut team = Team::with_scores(1234, "Alpha".into(), -1.5, 45.25, 3.0, 62.0);
+    let mut team = scored(1234, "Alpha", -1.5, 45.25, 3.0, 62.0);
     team.sponsors = "Acme".into();
     team.location = "Houston, TX, USA".into();
     team.founded = Some(2011);
@@ -115,19 +121,8 @@ fn serializes_to_the_season_table_columns() {
 }
 
 #[test]
-fn timestamps_stay_out_of_the_row() {
-    let mut team = Team::new(1, "A".into());
-    team.update_last_match();
-    team.update_last_checked();
-
-    let json = serde_json::to_value(&team).unwrap();
-    assert!(!json.as_object().unwrap().contains_key("last_match"));
-    assert!(!json.as_object().unwrap().contains_key("last_checked"));
-}
-
-#[test]
 fn round_trips_through_json() {
-    let mut team = Team::with_scores(1234, "Alpha".into(), -1.5, 45.25, 3.0, 62.0);
+    let mut team = scored(1234, "Alpha", -1.5, 45.25, 3.0, 62.0);
     team.auto_rank = Some(42);
     team.add_events(["TXHOU".into()]);
 

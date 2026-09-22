@@ -9,7 +9,7 @@ fn default_event_is_empty() {
     let event = Event::default();
     assert_eq!(event.code, "");
     assert!(event.is_empty());
-    assert_eq!(event.match_count(), 0);
+    assert_eq!(event.matches.len(), 0);
     assert!(event.teams().is_empty());
 }
 
@@ -24,7 +24,7 @@ fn matches_keep_the_order_they_were_added() {
     event.add_match(qual([1, 2], [3, 4]));
     event.add_match(qual([5, 6], [7, 8]));
 
-    assert_eq!(event.match_count(), 2);
+    assert_eq!(event.matches.len(), 2);
     assert_eq!(event.matches[0].red.teams, [1, 2]);
     assert_eq!(event.matches[1].red.teams, [5, 6]);
 }
@@ -66,7 +66,7 @@ fn realistic_event_shape() {
         event.add_match(qual([base, base + 1], [base + 2, base + 3]));
     }
 
-    assert_eq!(event.match_count(), 30);
+    assert_eq!(event.matches.len(), 30);
     assert_eq!(event.teams().len(), 20);
 }
 

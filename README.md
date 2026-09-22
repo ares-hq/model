@@ -1,10 +1,12 @@
-# Installation
+# model
 
-## Add as a Git Submodule
+Shared types for the ARES pipeline and bot: `Team`, `Event`, `Match`, `Alliance`,
+`current_season`, and the Supabase table names. One definition, so both sides agree
+on what a row means.
 
-```sh
-git submodule add https://github.com/ares-hq/cache.git
-git submodule update --init --recursive
+```toml
+model = { git = "https://github.com/ares-hq/model.git", branch = "main" }
+model = { git = "...", features = ["supabase"] }   # + PostgREST client
 ```
 
-This will add the repository as a submodule in the `cache` directory. Adjust the path as needed.
+Everything is re-exported from `model::prelude`.

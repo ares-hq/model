@@ -15,7 +15,7 @@ fn scored() -> Alliance {
 fn default_alliance_scores_nothing() {
     let alliance = Alliance::default();
     assert_eq!(alliance.teams, [0, 0]);
-    assert_eq!(alliance.overall(), 0.0);
+    assert_eq!(alliance.net_points(), 0.0);
     assert!(alliance.is_empty());
 }
 
@@ -23,13 +23,19 @@ fn default_alliance_scores_nothing() {
 fn new_records_teams_without_scores() {
     let alliance = Alliance::new([1234, 5678]);
     assert_eq!(alliance.teams, [1234, 5678]);
-    assert_eq!(alliance.overall(), 0.0);
+    assert_eq!(alliance.net_points(), 0.0);
 }
 
 #[test]
-fn overall_deducts_penalties_from_every_phase() {
-    // 180 + 270 + 70 - 15
-    assert_eq!(scored().overall(), 505.0);
+fn points_is_every_phase_without_the_penalty() {
+    // 180 + 270 + 70
+    assert_eq!(scored().points(), 520.0);
+}
+
+#[test]
+fn net_points_deducts_the_alliances_own_penalties() {
+    // 520 - 15
+    assert_eq!(scored().net_points(), 505.0);
 }
 
 #[test]
@@ -60,16 +66,9 @@ fn penalties_alone_leave_a_negative_score() {
         penalties: 20.0,
         ..Default::default()
     };
-    assert_eq!(alliance.overall(), -20.0);
+    assert_eq!(alliance.points(), 0.0);
+    assert_eq!(alliance.net_points(), -20.0);
     assert!(!alliance.is_empty());
-}
-
-#[test]
-fn has_team_matches_either_slot() {
-    let alliance = scored();
-    assert!(alliance.has_team(1234));
-    assert!(alliance.has_team(5678));
-    assert!(!alliance.has_team(9999));
 }
 
 #[test]
@@ -89,12 +88,13 @@ fn zero_marks_an_empty_slot() {
         ..Default::default()
     };
 
-    assert!(alliance.has_team(1234));
-    assert!(!alliance.has_team(0));
-    assert_eq!(alliance.present().collect::<Vec<_>>(), vec![1234]);
+    assert_eq!(alliance.present_teams().collect::<Vec<_>>(), vec![1234]);
 }
 
 #[test]
 fn present_yields_both_teams_when_the_alliance_is_full() {
-    assert_eq!(scored().present().collect::<Vec<_>>(), vec![1234, 5678]);
+    assert_eq!(
+        scored().present_teams().collect::<Vec<_>>(),
+        vec![1234, 5678]
+    );
 }

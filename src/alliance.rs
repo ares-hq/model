@@ -1,4 +1,3 @@
-/// One alliance's scores in a match — a row of the OPR system; teams by number.
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Alliance {
     /// `0` marks an empty slot.
@@ -17,20 +16,19 @@ impl Alliance {
         }
     }
 
-    pub fn overall(&self) -> f64 {
-        self.auto + self.teleop + self.endgame - self.penalties
+    pub fn points(&self) -> f64 {
+        self.auto + self.teleop + self.endgame
     }
 
-    pub fn has_team(&self, number: u32) -> bool {
-        number != 0 && self.teams.contains(&number)
+    pub fn net_points(&self) -> f64 {
+        self.points() - self.penalties
     }
 
-    pub fn present(&self) -> impl Iterator<Item = u32> + '_ {
+    pub fn present_teams(&self) -> impl Iterator<Item = u32> + '_ {
         self.teams.iter().copied().filter(|&n| n != 0)
     }
 
-    /// Nothing scored, e.g. unplayed.
     pub fn is_empty(&self) -> bool {
-        self.overall() == 0.0
+        self.auto == 0.0 && self.teleop == 0.0 && self.endgame == 0.0 && self.penalties == 0.0
     }
 }
