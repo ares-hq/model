@@ -1,9 +1,7 @@
 use std::time::Duration;
 
 use anyhow::{Context, Result, anyhow};
-use reqwest::header::{
-    AUTHORIZATION, HeaderMap, HeaderValue, IF_MODIFIED_SINCE, LAST_MODIFIED, RETRY_AFTER,
-};
+use reqwest::header::{IF_MODIFIED_SINCE, LAST_MODIFIED, RETRY_AFTER};
 use reqwest::{StatusCode, Url};
 use serde::de::DeserializeOwned;
 use tokio::time::sleep;
@@ -18,19 +16,13 @@ const MAX_BACKOFF: Duration = Duration::from_secs(30);
 pub struct ApiClient {
     base_url: Url,
     client: reqwest::Client,
+    username: String,
+    password: String,
 }
 
 impl ApiClient {
     pub fn new(base_url: &str, username: String, password: String) -> Result<Self> {
-        let mut headers = HeaderMap::new();
-        let auth = format!("Basic {}", base64_basic_auth(&username, &password));
-        headers.insert(
-            AUTHORIZATION,
-            HeaderValue::from_str(&auth).context("invalid auth header")?,
-        );
-
         let client = reqwest::Client::builder()
-            .default_headers(headers)
             .pool_max_idle_per_host(128)
             .tcp_keepalive(Duration::from_secs(30))
             .timeout(Duration::from_secs(60))
@@ -40,6 +32,8 @@ impl ApiClient {
         Ok(Self {
             base_url: Url::parse(base_url).context("invalid API base URL")?,
             client,
+            username,
+            password,
         })
     }
 
@@ -90,7 +84,11 @@ impl ApiClient {
         let mut last_err = None;
 
         for attempt in 0..MAX_ATTEMPTS {
-            let mut request = self.client.get(url.clone()).query(&params.query_params);
+            let mut request = self
+                .client
+                .get(url.clone())
+                .basic_auth(&self.username, Some(&self.password))
+                .query(&params.query_params);
             if let Some(since) = since {
                 request = request.header(IF_MODIFIED_SINCE, since);
             }
@@ -149,11 +147,6 @@ fn retry_after(resp: &reqwest::Response) -> Option<Duration> {
         .parse::<u64>()
         .ok()
         .map(Duration::from_secs)
-}
-
-fn base64_basic_auth(user: &str, pass: &str) -> String {
-    use base64::{Engine as _, engine::general_purpose};
-    general_purpose::STANDARD.encode(format!("{user}:{pass}"))
 }
 
 #[cfg(test)]
