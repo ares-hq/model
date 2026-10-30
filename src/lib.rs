@@ -1,5 +1,7 @@
 pub mod alliance;
 pub mod event;
+#[cfg(feature = "first")]
+pub mod first;
 pub mod r#match;
 pub mod prelude;
 pub mod season;

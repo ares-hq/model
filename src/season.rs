@@ -1,8 +1,13 @@
-const AUGUST: u32 = 8;
+/// A season starts on the first of this month.
+pub const ROLLOVER_MONTH: u32 = 8;
 
 /// Rolls over in August: May 2027 is the 2026 season.
 pub fn current_season(year: i32, month: u32) -> i32 {
-    if month < AUGUST { year - 1 } else { year }
+    if month < ROLLOVER_MONTH {
+        year - 1
+    } else {
+        year
+    }
 }
 
 #[cfg(test)]
