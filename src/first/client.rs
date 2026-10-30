@@ -1,6 +1,9 @@
+use std::num::NonZeroU32;
+use std::sync::Arc;
 use std::time::Duration;
 
 use anyhow::{Context, Result, anyhow};
+use governor::{DefaultDirectRateLimiter, Quota, RateLimiter};
 use reqwest::header::{IF_MODIFIED_SINCE, LAST_MODIFIED, RETRY_AFTER};
 use reqwest::{StatusCode, Url};
 use serde::de::DeserializeOwned;
@@ -11,6 +14,8 @@ use super::params::ApiParams;
 const MAX_ATTEMPTS: u32 = 3;
 const BASE_BACKOFF: Duration = Duration::from_millis(250);
 const MAX_BACKOFF: Duration = Duration::from_secs(30);
+/// Shared by every clone, retries included.
+const REQUESTS_PER_SECOND: NonZeroU32 = NonZeroU32::new(20).unwrap();
 
 #[derive(Clone)]
 pub struct ApiClient {
@@ -18,6 +23,7 @@ pub struct ApiClient {
     client: reqwest::Client,
     username: String,
     password: String,
+    limiter: Arc<DefaultDirectRateLimiter>,
 }
 
 impl ApiClient {
@@ -34,6 +40,7 @@ impl ApiClient {
             client,
             username,
             password,
+            limiter: Arc::new(RateLimiter::direct(Quota::per_second(REQUESTS_PER_SECOND))),
         })
     }
 
@@ -84,6 +91,7 @@ impl ApiClient {
         let mut last_err = None;
 
         for attempt in 0..MAX_ATTEMPTS {
+            self.limiter.until_ready().await;
             let mut request = self
                 .client
                 .get(url.clone())
