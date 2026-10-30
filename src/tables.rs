@@ -7,6 +7,8 @@ pub fn matches(year: i32) -> String {
 }
 
 pub const FAVORITES: &str = "favorites";
+pub const EVENT_SUBSCRIPTIONS: &str = "event_subscriptions";
+pub const POSTED_MATCHES: &str = "posted_matches";
 
 #[cfg(test)]
 mod tests {

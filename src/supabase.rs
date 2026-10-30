@@ -10,7 +10,7 @@ use crate::team::Team;
 const UPSERT_CHUNK: usize = 500;
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// A PostgREST filter, e.g. `("teamNumber", "eq.254")`.
+/// A PostgREST filter, e.g. `("teamNumber", "eq.14584")`.
 pub type Filter<'a> = (&'a str, String);
 
 #[derive(Clone)]
