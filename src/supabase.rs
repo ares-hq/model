@@ -8,6 +8,8 @@ use serde::de::DeserializeOwned;
 use crate::team::Team;
 
 const UPSERT_CHUNK: usize = 500;
+/// Supabase's default `max-rows`; a shorter page is the last one.
+const PAGE: usize = 1000;
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// A PostgREST filter, e.g. `("teamNumber", "eq.14584")`.
@@ -60,6 +62,30 @@ impl Supabase {
             .with_context(|| format!("decoding {table} rows"))
     }
 
+    /// Every matching row, paged past the server's row cap; `order` keeps pages stable.
+    pub async fn select_all<T: DeserializeOwned>(
+        &self,
+        table: &str,
+        filters: &[Filter<'_>],
+        order: &str,
+    ) -> Result<Vec<T>> {
+        let mut rows = Vec::new();
+        loop {
+            let mut query = filters.to_vec();
+            query.extend([
+                ("order", order.to_owned()),
+                ("limit", PAGE.to_string()),
+                ("offset", rows.len().to_string()),
+            ]);
+            let page: Vec<T> = self.select(table, &query).await?;
+            let last = page.len() < PAGE;
+            rows.extend(page);
+            if last {
+                return Ok(rows);
+            }
+        }
+    }
+
     pub async fn delete(&self, table: &str, filters: &[Filter<'_>]) -> Result<()> {
         self.request(reqwest::Method::DELETE, table)
             .query(filters)
@@ -95,10 +121,6 @@ impl Supabase {
             .join(",");
         self.select(table, &[("teamNumber", format!("in.({list})"))])
             .await
-    }
-
-    pub async fn teams(&self, table: &str) -> Result<Vec<Team>> {
-        self.select(table, &[("select", "*".into())]).await
     }
 
     /// `on_conflict` of `None` resolves on the primary key.
